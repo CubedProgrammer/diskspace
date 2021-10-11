@@ -9,7 +9,7 @@ int main(int argl, char *argv[])
 {
     char cbuf[100];
     char mdat[20000];
-    const char search[8] = "/dev/sd";
+    const char search[6] = "/dev/";
     int mounts = open("/proc/self/mounts", O_RDONLY);
     size_t msize = read(mounts, mdat, sizeof(mdat));
     close(mounts);
