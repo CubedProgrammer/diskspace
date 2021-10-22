@@ -9,8 +9,19 @@ int main(int argl, char *argv[])
 {
     char cbuf[100];
     char mdat[20000];
-    const char search[6] = "/dev/";
-    int mounts = open("/proc/self/mounts", O_RDONLY);
+    const char search[7] = "\n/dev/";
+    int mpipes[2];
+    pipe(mpipes);
+    int mpid = fork();
+    if(mpid == 0)
+    {
+        dup2(mpipes[1], STDOUT_FILENO);
+        execl("/usr/bin/mount", "/usr/bin/mount", (char *)NULL);
+        exit(1);
+    }
+    else
+        close(mpipes[1]);
+    int mounts = mpipes[0];
     size_t msize = read(mounts, mdat, sizeof(mdat));
     close(mounts);
     mdat[msize] = '\0';
@@ -27,14 +38,15 @@ int main(int argl, char *argv[])
     while(devstr != NULL)
     {
         mpstr = strchr(devstr, ' ');
-        *mpstr++ = '\0';
+        *mpstr = '\0';
+        mpstr += 4;
         spaceptr = strchr(mpstr, ' ');
         *spaceptr = '\0';
         statvfs(mpstr, pdisk);
         total = disk.f_frsize * disk.f_blocks;
         remaining = disk.f_frsize * disk.f_bfree;
         used = total - remaining;
-        fprintf(file, "%s %s %lu %lu %lu\n", devstr, mpstr, used, remaining, total);
+        fprintf(file, "%s %s %lu %lu %lu\n", devstr + 1, mpstr, used, remaining, total);
         devstr = strstr(spaceptr + 1, search);
     }
     fclose(file);
