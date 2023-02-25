@@ -30,6 +30,7 @@ int main(int argl, char *argv[])
     struct statvfs disk;
     struct statvfs *pdisk = &disk;
     unsigned long total, remaining, used;
+    unsigned eu = geteuid();
     cpcdt_date date = cpcdt_make_date(sec_since_epoch());
     cpcdt_readable_date(cbuf, date);
     FILE *file = fopen("diskspace.txt", "a");
@@ -44,7 +45,10 @@ int main(int argl, char *argv[])
         *spaceptr = '\0';
         statvfs(mpstr, pdisk);
         total = disk.f_frsize * disk.f_blocks;
-        remaining = disk.f_frsize * disk.f_bfree;
+        if(eu == 0)
+            remaining = disk.f_frsize * disk.f_bfree;
+        else
+            remaining = disk.f_frsize * disk.f_bavail;
         used = total - remaining;
         fprintf(file, "%s %s %lu %lu %lu\n", devstr + 1, mpstr, used, remaining, total);
         devstr = strstr(spaceptr + 1, search);
