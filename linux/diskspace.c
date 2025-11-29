@@ -25,12 +25,14 @@ int main(int argl, char *argv[])
     size_t msize = read(mounts, mdat, sizeof(mdat));
     close(mounts);
     mdat[msize] = '\0';
-    char *devstr = strstr(mdat, search);
+    char *devstr = mdat;
     char *mpstr, *spaceptr;
     struct statvfs disk;
     struct statvfs *pdisk = &disk;
     unsigned long total, remaining, used;
     unsigned eu = geteuid();
+    if(strncmp(devstr, search + 1, 5))
+        devstr = strstr(mdat, search);
     cpcdt_date date = cpcdt_make_date(sec_since_epoch());
     cpcdt_readable_date(cbuf, date);
     FILE *file = fopen("diskspace.txt", "a");
